@@ -3,8 +3,9 @@ import random
 import sys
 sys.path.append('/Users/beam/Desktop/project/algorithms/UF') 
 from union import Quick_Union_Weight as quw
-
-class perlocation:
+import statistics 
+import math
+class percolation:
     '''
     生成一个N**2的矩阵，open用1，full用0
     '''
@@ -33,9 +34,9 @@ class perlocation:
         if m<self.N & self.is_open(m+1,n) ==1:
             self.wqu.union(self.id(m,n),self.id(m+1,n))
         if n>=1 & self.is_open(m,n-1) == 1:
-            self.wqu.union(self.id(m,n),self(m,n-1))
+            self.wqu.union(self.id(m,n),self.id(m,n-1))
         if n<self.N & self.is_open(m,n+1) ==1:
-            self.wqu.union(self.id(m,n),self(m,n+1))
+            self.wqu.union(self.id(m,n),self.id(m,n+1))
     '''
     A full site is an open site that can be connected to an open site 
     in the top row via a chain of neighboring (left, right, up, down) 
@@ -62,4 +63,47 @@ class perlocation:
     def ispercolated(self):
         for i in range(self.N):
             return self.isfull(self.N-1,i) == 1
-        return False
+
+class PercolationStats:
+        
+    '''
+    1次运行到percolates，记录opensites，计算fraction，总共percolate 400次，计算
+    400个fractions的平均值
+    N是grid的大小，T表示实验次数，需要统计percolates之后opensites的数目，用random
+    任取(m,n)并将其打开
+    '''
+    def __init__(self,N,T):
+        self.fractions = []
+        if N<=0 or T<=0:
+            raise Exception('should larger than 0')
+        self.times = T
+        for i in range(T):
+            self.grid = percolation(N)
+            self.opensites = 0
+            while True:
+                m = int(random.uniform(1,N))
+                n = int(random.uniform(1,N))
+                if not self.grid.is_open(m,n):
+                    self.grid.open(m,n)
+                    self.opensites += 1
+                if self.grid.ispercolated():
+                    break
+            self.fractions.append(float(self.opensites/(N*N)))
+
+    
+    def mean(self):
+        return self.fractions.mean()
+
+    def stddev(self):
+        return self.fractions.stdev()
+
+    def confidenceLo(self):
+        return self.mean() - (1.96*self.stddev())/math.sqrt(self.times)
+
+    def confidenceHi(self):
+        return self.mean() + (1.96*self.stddev())/math.sqrt(self.times)
+
+    def main(self):
+        print('mean:' %self.mean())
+        print('stddev:' %self.stddev())
+        print('0.95 confidence interval: [' + self.confidenceLo +', '+ self.confidenceHi+']')

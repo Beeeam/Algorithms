@@ -29,11 +29,11 @@ class percolation:
     '''
     def open(self,m,n):
         self.grid[m-1][n-1] = 1
-        if m>=1 & self.is_open(m-1,n) == 1:
+        if m>1 & self.is_open(m-1,n) == 1:
             self.wqu.union(self.id(m,n),self.id(m-1,n))
         if m<self.N & self.is_open(m+1,n) ==1:
             self.wqu.union(self.id(m,n),self.id(m+1,n))
-        if n>=1 & self.is_open(m,n-1) == 1:
+        if n>1 & self.is_open(m,n-1) == 1:
             self.wqu.union(self.id(m,n),self.id(m,n-1))
         if n<self.N & self.is_open(m,n+1) ==1:
             self.wqu.union(self.id(m,n),self.id(m,n+1))
@@ -45,7 +45,8 @@ class percolation:
     def isfull(self,m,n):
         if self.is_open(m,n) ==1:
             for i in range(self.N):
-                return self.wqu.is_connected(self.id(m,n),i) == 1
+                if self.wqu.is_connected(self.id(m,n),i) == 1:
+                    return True
         return False
     '''
     返回opensite的个数
@@ -62,7 +63,9 @@ class percolation:
     '''
     def ispercolated(self):
         for i in range(self.N):
-            return self.isfull(self.N-1,i) == 1
+            if self.isfull(self.N,i+1) == 1:
+                return True
+        return False
 
 class PercolationStats:
         
@@ -79,16 +82,14 @@ class PercolationStats:
         self.times = T
         for i in range(T):
             self.grid = percolation(N)
-            self.opensites = 0
             while True:
                 m = int(random.uniform(1,N))
                 n = int(random.uniform(1,N))
                 if not self.grid.is_open(m,n):
                     self.grid.open(m,n)
-                    self.opensites += 1
                 if self.grid.ispercolated():
                     break
-            self.fractions.append(float(self.opensites/(N*N)))
+            self.fractions.append(float(self.grid.nmofops()/(N*N)))
 
     
     def mean(self):
@@ -107,3 +108,4 @@ class PercolationStats:
         print('mean:' %self.mean())
         print('stddev:' %self.stddev())
         print('0.95 confidence interval: [' + self.confidenceLo +', '+ self.confidenceHi+']')
+

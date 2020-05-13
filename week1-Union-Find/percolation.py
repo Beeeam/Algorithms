@@ -1,9 +1,10 @@
+
 import numpy as np
 import random
 import sys
 sys.path.append('/Users/beam/Desktop/project/algorithms/UF') 
 from union import Quick_Union_Weight as quw
-import statistics 
+import statistics as stat
 import math
 class percolation:
     '''
@@ -29,13 +30,13 @@ class percolation:
     '''
     def open(self,m,n):
         self.grid[m-1][n-1] = 1
-        if m>1 & self.is_open(m-1,n) == 1:
+        if m-1>0 and self.is_open(m-1,n) == 1:
             self.wqu.union(self.id(m,n),self.id(m-1,n))
-        if m<self.N & self.is_open(m+1,n) ==1:
+        if m+1<self.N and self.is_open(m+1,n) ==1:
             self.wqu.union(self.id(m,n),self.id(m+1,n))
-        if n>1 & self.is_open(m,n-1) == 1:
+        if n-1>0 and self.is_open(m,n-1) == 1:
             self.wqu.union(self.id(m,n),self.id(m,n-1))
-        if n<self.N & self.is_open(m,n+1) ==1:
+        if n+1<self.N and self.is_open(m,n+1) ==1:
             self.wqu.union(self.id(m,n),self.id(m,n+1))
     '''
     A full site is an open site that can be connected to an open site 
@@ -53,9 +54,10 @@ class percolation:
     '''
     def nmofops(self):
         num = 0
-        for m,n in range(self.N):
-            num += self.is_open(m,n)
-            return num
+        for m in range(self.N):
+            for n in range(self.N):
+                num += self.is_open(m,n)
+        return num
     '''
     the system percolates if there is a full site in the bottom row. 
     In other words, a system percolates if we fill all open sites connected 
@@ -82,21 +84,23 @@ class PercolationStats:
         self.times = T
         for i in range(T):
             self.grid = percolation(N)
-            while True:
-                m = int(random.uniform(1,N))
-                n = int(random.uniform(1,N))
+            self.num = 0
+            print(i)
+            while not self.grid.ispercolated():
+                m = random.randint(1,N)
+                n = random.randint(1,N)
                 if not self.grid.is_open(m,n):
                     self.grid.open(m,n)
-                if self.grid.ispercolated():
-                    break
-            self.fractions.append(float(self.grid.nmofops()/(N*N)))
+                    self.num+=1
+            self.fractions.append(float(self.num/(N*N)))
+            print(self.fractions)
 
     
     def mean(self):
-        return self.fractions.mean()
+        return float(stat.mean(self.fractions))
 
     def stddev(self):
-        return self.fractions.stdev()
+        return float(stat.stdev(self.fractions))
 
     def confidenceLo(self):
         return self.mean() - (1.96*self.stddev())/math.sqrt(self.times)
@@ -105,7 +109,8 @@ class PercolationStats:
         return self.mean() + (1.96*self.stddev())/math.sqrt(self.times)
 
     def main(self):
-        print('mean:' %self.mean())
-        print('stddev:' %self.stddev())
-        print('0.95 confidence interval: [' + self.confidenceLo +', '+ self.confidenceHi+']')
+        print('mean:%f' %self.mean())
+        print('stddev:%f' %self.stddev())
+        print('0.95 confidence interval: [%f'  % self.confidenceLo() +', %f' %self.confidenceHi()+']')
 
+PercolationStats(5,20).main()
